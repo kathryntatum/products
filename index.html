@@ -27,7 +27,7 @@
   html, body { margin: 0; padding: 0; }
   body {
     font-family: var(--body); color: var(--ink); background: var(--field);
-    min-height: 100vh; -webkit-font-smoothing: antialiased;
+    min-height: 100vh; -webkit-font-smoothing: antialiased; overflow-x: hidden;
   }
   .wrap { max-width: 1240px; margin: 0 auto; padding: 26px 20px 70px; }
 
@@ -61,10 +61,19 @@
   .chip { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink-soft); cursor: pointer; }
   .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
   .chip:focus-visible { outline: 2px solid var(--mulberry); outline-offset: 2px; }
-  .hint { font-family: var(--mono); font-size: 10px; letter-spacing: .07em; color: var(--ink-soft); margin-left: auto; text-transform: uppercase; }
+  .filters-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .hint { font-family: var(--mono); font-size: 10px; letter-spacing: .07em; color: var(--ink-soft); text-transform: uppercase; }
+
+  .zoom { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .zoom button { font-family: var(--mono); font-size: 11px; background: transparent; border: 0; color: var(--ink); cursor: pointer; padding: 6px 11px; line-height: 1; }
+  .zoom button:hover { background: var(--ink); color: var(--paper); }
+  .zoom button:focus-visible { outline: 2px solid var(--mulberry); outline-offset: -2px; }
+  .zoom-value { min-width: 44px; border-left: 1px solid var(--line); border-right: 1px solid var(--line); letter-spacing: .04em; }
 
   /* free canvas (desktop) */
-  .canvas { position: relative; min-height: 600px; border: 1px solid var(--line); background-color: var(--field-deep); background-image: radial-gradient(circle at 1px 1px, rgba(25,28,36,.10) 1px, transparent 0); background-size: 26px 26px; border-radius: 3px; overflow: hidden; }
+  .canvas-viewport { position: relative; height: 72vh; min-height: 480px; border: 1px solid var(--line); background: var(--field-deep); border-radius: 3px; overflow: auto; }
+  .canvas-viewport.full-bleed { width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); border-radius: 0; border-left: 0; border-right: 0; }
+  .canvas { position: relative; width: 100%; min-height: 100%; background-image: radial-gradient(circle at 1px 1px, rgba(25,28,36,.10) 1px, transparent 0); background-size: 26px 26px; transform-origin: 0 0; }
   .canvas.editing { touch-action: none; }
 
   /* flow fallback (mobile) */
@@ -161,6 +170,8 @@ const { useState, useEffect, useRef, useCallback } = React;
 const LOCAL_KEY = 'tried-draft-v1';
 const SWATCHES = ['#77384F', '#A8863F', '#4A6152', '#2E4057', '#8C5A3C', '#6B5B7B', '#B4707E', '#3F4A3C'];
 const CATEGORIES = ['Skincare', 'Makeup', 'Hair', 'Body', 'Fragrance', 'Tools', 'Other'];
+const ZOOM_MIN = 0.4, ZOOM_MAX = 2.5, ZOOM_STEP = 0.15;
+const clampZoom = z => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z * 100) / 100));
 const EDIT = new URLSearchParams(location.search).has('edit');
 
 const uid = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -181,6 +192,7 @@ function App() {
   const [showJson, setShowJson] = useState(false);
   const [phase, setPhase] = useState('loading');
   const [narrow, setNarrow] = useState(window.matchMedia('(max-width: 760px)').matches);
+  const [zoom, setZoom] = useState(1);
   const canvasRef = useRef(null);
   const drag = useRef(null);
 
@@ -236,21 +248,28 @@ function App() {
   const onDown = useCallback((e, item) => {
     if (!EDIT || !canvasRef.current || e.target.closest('.card-edit')) return;
     const r = canvasRef.current.getBoundingClientRect();
-    drag.current = { id: item.id, dx: e.clientX - r.left - (item.x || 0), dy: e.clientY - r.top - (item.y || 0) };
+    drag.current = { id: item.id, dx: (e.clientX - r.left) / zoom - (item.x || 0), dy: (e.clientY - r.top) / zoom - (item.y || 0) };
     e.currentTarget.setPointerCapture(e.pointerId);
     e.currentTarget.classList.add('dragging');
-  }, []);
+  }, [zoom]);
 
   const onMove = useCallback((e) => {
     if (!drag.current || !canvasRef.current) return;
     const r = canvasRef.current.getBoundingClientRect();
     const w = e.currentTarget.offsetWidth, h = e.currentTarget.offsetHeight;
-    const x = Math.max(0, Math.min(r.width - w, e.clientX - r.left - drag.current.dx));
-    const y = Math.max(0, Math.min(Math.max(r.height, h + 40) - h, e.clientY - r.top - drag.current.dy));
+    const cw = r.width / zoom, ch = r.height / zoom;
+    const x = Math.max(0, Math.min(cw - w, (e.clientX - r.left) / zoom - drag.current.dx));
+    const y = Math.max(0, Math.min(Math.max(ch, h + 40) - h, (e.clientY - r.top) / zoom - drag.current.dy));
     setItems(p => p.map(i => i.id === drag.current.id ? { ...i, x, y } : i));
-  }, []);
+  }, [zoom]);
 
   const onUp = useCallback((e) => { drag.current = null; e.currentTarget.classList.remove('dragging'); }, []);
+
+  const onWheelZoom = useCallback((e) => {
+    if (!useCanvas || !(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    setZoom(z => clampZoom(z - e.deltaY * 0.01));
+  }, [useCanvas]);
 
   const onKey = useCallback((e, item) => {
     if (!EDIT) return;
@@ -350,22 +369,33 @@ function App() {
               {c}{c !== 'All' && ' · ' + counts[c]}
             </button>
           ))}
-          {EDIT && <span className="hint">{view === 'canvas' ? (narrow ? 'Widen the window to rearrange' : 'Drag cards anywhere') : 'Drag rows to reorder'}</span>}
+          <div className="filters-right">
+            {useCanvas && (
+              <div className="zoom">
+                <button onClick={() => setZoom(z => clampZoom(z - ZOOM_STEP))} aria-label="Zoom out">−</button>
+                <button className="zoom-value" onClick={() => setZoom(1)} aria-label="Reset zoom to 100%">{Math.round(zoom * 100)}%</button>
+                <button onClick={() => setZoom(z => clampZoom(z + ZOOM_STEP))} aria-label="Zoom in">+</button>
+              </div>
+            )}
+            {EDIT && <span className="hint">{view === 'canvas' ? (narrow ? 'Widen the window to rearrange' : 'Drag cards anywhere · Ctrl/⌘ + scroll to zoom') : 'Drag rows to reorder'}</span>}
+          </div>
         </div>
 
         {view === 'canvas' ? (
           useCanvas ? (
-            <div className={'canvas' + (EDIT ? ' editing' : '')} ref={canvasRef}>
-              {visible.length === 0 && (
-                <div className="state"><div className="state-title">Nothing here yet</div>
-                  <div className="state-text">No products in this category.</div></div>
-              )}
-              {visible.map(item => (
-                <Card key={item.id} item={item} onEdit={setEditing} editable={EDIT}
-                  style={{ left: (item.x || 0) + 'px', top: (item.y || 0) + 'px' }}
-                  onPointerDown={(e) => onDown(e, item)} onPointerMove={onMove}
-                  onPointerUp={onUp} onPointerCancel={onUp} onKeyDown={(e) => onKey(e, item)} />
-              ))}
+            <div className="canvas-viewport full-bleed" onWheel={onWheelZoom}>
+              <div className={'canvas' + (EDIT ? ' editing' : '')} ref={canvasRef} style={{ transform: 'scale(' + zoom + ')' }}>
+                {visible.length === 0 && (
+                  <div className="state"><div className="state-title">Nothing here yet</div>
+                    <div className="state-text">No products in this category.</div></div>
+                )}
+                {visible.map(item => (
+                  <Card key={item.id} item={item} onEdit={setEditing} editable={EDIT}
+                    style={{ left: (item.x || 0) + 'px', top: (item.y || 0) + 'px' }}
+                    onPointerDown={(e) => onDown(e, item)} onPointerMove={onMove}
+                    onPointerUp={onUp} onPointerCancel={onUp} onKeyDown={(e) => onKey(e, item)} />
+                ))}
+              </div>
             </div>
           ) : (
             <div className="flow">
