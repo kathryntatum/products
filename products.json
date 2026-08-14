@@ -1,0 +1,47 @@
+{
+  "title": "Tried",
+  "intro": "Products I've actually used, arranged the way I think about them. Not sponsored, not a wishlist — just what earned a second look.",
+  "handle": "@kathryn.tates",
+  "updated": "August 2026",
+  "items": [
+    {
+      "id": "s1",
+      "name": "Replace me with a real product",
+      "brand": "Example",
+      "category": "Skincare",
+      "color": "#77384F",
+      "rating": 4,
+      "verdict": "yes",
+      "note": "Open the site with ?edit on the end to rearrange everything, then export and paste the result back into this file.",
+      "link": "",
+      "x": 40,
+      "y": 40
+    },
+    {
+      "id": "s2",
+      "name": "The one that disappointed",
+      "brand": "Example",
+      "category": "Makeup",
+      "color": "#A8863F",
+      "rating": 2,
+      "verdict": "no",
+      "note": "Rating and repurchase are separate on purpose — you can like something and still not buy it twice.",
+      "link": "",
+      "x": 300,
+      "y": 96
+    },
+    {
+      "id": "s3",
+      "name": "The repeat buy",
+      "brand": "Example",
+      "category": "Hair",
+      "color": "#4A6152",
+      "rating": 5,
+      "verdict": "yes",
+      "note": "",
+      "link": "",
+      "x": 560,
+      "y": 40
+    }
+  ]
+}
