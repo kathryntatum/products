@@ -73,7 +73,7 @@
   /* free canvas (desktop) */
   .canvas-viewport { position: relative; height: 72vh; min-height: 480px; border: 1px solid var(--line); background: var(--field-deep); border-radius: 3px; overflow: auto; }
   .canvas-viewport.full-bleed { width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); border-radius: 0; border-left: 0; border-right: 0; }
-  .canvas { position: relative; width: 100%; min-height: 100%; background-image: radial-gradient(circle at 1px 1px, rgba(25,28,36,.10) 1px, transparent 0); background-size: 26px 26px; transform-origin: 0 0; }
+  .canvas { position: relative; background-image: radial-gradient(circle at 1px 1px, rgba(25,28,36,.10) 1px, transparent 0); background-size: 26px 26px; transform-origin: 0 0; }
   .canvas.editing { touch-action: none; }
 
   /* flow fallback (mobile) */
@@ -172,6 +172,7 @@ const SWATCHES = ['#77384F', '#A8863F', '#4A6152', '#2E4057', '#8C5A3C', '#6B5B7
 const CATEGORIES = ['Skincare', 'Makeup', 'Hair', 'Body', 'Fragrance', 'Tools', 'Other'];
 const ZOOM_MIN = 0.4, ZOOM_MAX = 2.5, ZOOM_STEP = 0.15;
 const clampZoom = z => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z * 100) / 100));
+const CARD_W = 224, CARD_H_EST = 260, CANVAS_PAD = 80;
 const EDIT = new URLSearchParams(location.search).has('edit');
 
 const uid = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -193,7 +194,9 @@ function App() {
   const [phase, setPhase] = useState('loading');
   const [narrow, setNarrow] = useState(window.matchMedia('(max-width: 760px)').matches);
   const [zoom, setZoom] = useState(1);
+  const [vpSize, setVpSize] = useState({ w: 0, h: 0 });
   const canvasRef = useRef(null);
+  const viewportRef = useRef(null);
   const drag = useRef(null);
 
   useEffect(() => {
@@ -244,6 +247,25 @@ function App() {
   const top = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
 
   const useCanvas = view === 'canvas' && !narrow;
+
+  // the canvas's logical (unscaled) size: at least the viewport, but grows to
+  // fit however far cards have been dragged, so zooming out reveals real room
+  const extent = items.reduce((a, i) => ({
+    w: Math.max(a.w, (i.x || 0) + CARD_W + CANVAS_PAD),
+    h: Math.max(a.h, (i.y || 0) + CARD_H_EST + CANVAS_PAD),
+  }), { w: 0, h: 0 });
+  const canvasW = Math.max(vpSize.w, extent.w);
+  const canvasH = Math.max(vpSize.h, extent.h);
+
+  useEffect(() => {
+    if (!useCanvas || !viewportRef.current) return;
+    const el = viewportRef.current;
+    const update = () => setVpSize({ w: el.clientWidth, h: el.clientHeight });
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [useCanvas, phase]);
 
   const onDown = useCallback((e, item) => {
     if (!EDIT || !canvasRef.current || e.target.closest('.card-edit')) return;
@@ -383,8 +405,9 @@ function App() {
 
         {view === 'canvas' ? (
           useCanvas ? (
-            <div className="canvas-viewport full-bleed" onWheel={onWheelZoom}>
-              <div className={'canvas' + (EDIT ? ' editing' : '')} ref={canvasRef} style={{ transform: 'scale(' + zoom + ')' }}>
+            <div className="canvas-viewport full-bleed" ref={viewportRef} onWheel={onWheelZoom}>
+              <div className={'canvas' + (EDIT ? ' editing' : '')} ref={canvasRef}
+                style={{ transform: 'scale(' + zoom + ')', width: canvasW + 'px', height: canvasH + 'px' }}>
                 {visible.length === 0 && (
                   <div className="state"><div className="state-title">Nothing here yet</div>
                     <div className="state-text">No products in this category.</div></div>
