@@ -50,12 +50,11 @@
   .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
   .seg button:focus-visible { outline: 2px solid var(--mulberry); outline-offset: -2px; }
 
-  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border-bottom: 1px solid var(--line); margin-top: 18px; }
+  .metrics { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: var(--line); border-bottom: 1px solid var(--line); margin-top: 18px; }
   .metric { background: var(--field); padding: 15px 4px 16px; }
   .metric-label { font-family: var(--mono); font-size: 9.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-soft); }
   .metric-value { font-family: var(--display); font-size: 30px; line-height: 1.05; margin-top: 5px; }
   .metric-value .unit { font-size: 15px; color: var(--ink-soft); }
-  .metric-value.small { font-size: 18px; line-height: 1.5; }
 
   .filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding: 15px 0 16px; }
   .chip { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink-soft); cursor: pointer; }
@@ -93,13 +92,12 @@
   .card-brand { font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
   .card-name { font-family: var(--display); font-size: 14px; line-height: 1.25; margin-top: 3px; overflow-wrap: break-word; }
   .card-meta { display: flex; align-items: center; gap: 8px; margin-top: 9px; flex-wrap: wrap; }
-  .dots { display: inline-flex; gap: 3px; }
-  .dot { width: 6px; height: 6px; border-radius: 50%; border: 1px solid var(--mulberry); }
-  .dot.on { background: var(--mulberry); }
-  .verdict { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 2px 6px; border-radius: 2px; }
-  .v-yes { background: var(--mulberry); color: var(--paper); }
-  .v-maybe { background: rgba(168,134,63,.2); color: var(--brass); }
-  .v-no { background: rgba(25,28,36,.08); color: var(--ink-soft); }
+  .like-badge { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+  .like-badge.is-favorite { color: var(--mulberry); font-weight: 600; }
+  .status-badge { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 2px 6px; border-radius: 2px; }
+  .status-using { background: var(--mulberry); color: var(--paper); }
+  .status-buy_again { background: rgba(168,134,63,.2); color: var(--brass); }
+  .status-retired { background: rgba(25,28,36,.08); color: var(--ink-soft); }
   .card-note { font-size: 11.5px; line-height: 1.45; color: var(--ink-soft); margin-top: 8px; overflow-wrap: break-word; }
   .card-foot { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--line-soft); display: flex; justify-content: space-between; gap: 8px; align-items: center; }
   .card-foot a { color: var(--mulberry); text-decoration: none; border-bottom: 1px solid currentColor; }
@@ -144,15 +142,12 @@
   .swatches { display: flex; gap: 7px; flex-wrap: wrap; }
   .sw { width: 27px; height: 27px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
   .sw[aria-pressed="true"] { border-color: var(--ink); }
-  .rate { display: flex; gap: 6px; }
-  .rate button { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--mulberry); background: transparent; cursor: pointer; padding: 0; }
-  .rate button.on { background: var(--mulberry); }
   .sheet-actions { display: flex; gap: 8px; margin-top: 20px; align-items: center; }
   .sheet-actions .spacer { flex: 1; }
   .code { width: 100%; min-height: 240px; font-family: var(--mono); font-size: 11px; line-height: 1.5; }
 
   @media (max-width: 760px) {
-    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .metrics { grid-template-columns: repeat(3, 1fr); }
     .mast-title { font-size: 34px; }
     .hint { display: none; }
   }
@@ -184,11 +179,11 @@ const EDIT = new URLSearchParams(location.search).has('edit');
 
 const uid = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
-const Dots = ({ n }) => (
-  <span className="dots">{[1,2,3,4,5].map(i => <span key={i} className={'dot' + (i <= n ? ' on' : '')} />)}</span>
+const Like = ({ v }) => (
+  <span className={'like-badge' + (v === 'favorite' ? ' is-favorite' : '')}>{v === 'favorite' ? '★ Favorite' : '☆ Like it'}</span>
 );
-const Verdict = ({ v }) => (
-  <span className={'verdict v-' + (v || 'maybe')}>{{ yes: 'Buy again', maybe: 'Maybe', no: 'Never again' }[v] || 'Maybe'}</span>
+const Status = ({ v }) => (
+  <span className={'status-badge status-' + (v || 'using')}>{{ using: 'Using', retired: 'Retired', buy_again: 'Buy new version' }[v] || 'Using'}</span>
 );
 
 function App() {
@@ -251,10 +246,11 @@ function App() {
   deptItems.forEach(i => { if (i.category) counts[i.category] = (counts[i.category] || 0) + 1; });
   const subcats = SUBCATEGORIES[department] || [];
   const cats = ['All', ...subcats];
-  const rated = deptItems.filter(i => i.rating > 0);
-  const avg = rated.length ? (rated.reduce((s, i) => s + i.rating, 0) / rated.length).toFixed(1) : '—';
-  const again = deptItems.length ? Math.round(deptItems.filter(i => i.verdict === 'yes').length / deptItems.length * 100) : 0;
-  const top = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+  const favoritePct = deptItems.length ? Math.round(deptItems.filter(i => i.like === 'favorite').length / deptItems.length * 100) : 0;
+  const likePct = deptItems.length ? Math.round(deptItems.filter(i => i.like === 'like').length / deptItems.length * 100) : 0;
+  const usingCount = deptItems.filter(i => i.status === 'using').length;
+  const retiredCount = deptItems.filter(i => i.status === 'retired').length;
+  const buyAgainCount = deptItems.filter(i => i.status === 'buy_again').length;
 
   function switchDepartment(dep) {
     setDepartment(dep);
@@ -334,7 +330,7 @@ function App() {
   function addNew() {
     const n = items.length;
     setEditing({ id: uid(), name: '', brand: '', department, category: SUBCATEGORIES[department][0], color: SWATCHES[n % SWATCHES.length],
-      rating: 3, verdict: 'maybe', note: '', link: '', image: '', shade: '', x: 24 + (n % 4) * 248, y: 24 + Math.floor(n / 4) * 190, isNew: true });
+      like: 'like', status: 'using', note: '', link: '', image: '', shade: '', x: 24 + (n % 4) * 248, y: 24 + Math.floor(n / 4) * 190, isNew: true });
   }
   function save(it) {
     const { isNew, ...c } = it;
@@ -401,9 +397,11 @@ function App() {
 
         <div className="metrics">
           <div className="metric"><div className="metric-label">Logged</div><div className="metric-value">{deptItems.length}</div></div>
-          <div className="metric"><div className="metric-label">Avg rating</div><div className="metric-value">{avg}{avg !== '—' && <span className="unit">/5</span>}</div></div>
-          <div className="metric"><div className="metric-label">Would buy again</div><div className="metric-value">{again}<span className="unit">%</span></div></div>
-          <div className="metric"><div className="metric-label">Most tried</div><div className="metric-value small">{top || '—'}</div></div>
+          <div className="metric"><div className="metric-label">Favorite</div><div className="metric-value">{favoritePct}<span className="unit">%</span></div></div>
+          <div className="metric"><div className="metric-label">Like it</div><div className="metric-value">{likePct}<span className="unit">%</span></div></div>
+          <div className="metric"><div className="metric-label">Using</div><div className="metric-value">{usingCount}</div></div>
+          <div className="metric"><div className="metric-label">Retired</div><div className="metric-value">{retiredCount}</div></div>
+          <div className="metric"><div className="metric-label">Buy new version</div><div className="metric-value">{buyAgainCount}</div></div>
         </div>
 
         <div className="filters">
@@ -472,7 +470,7 @@ function App() {
                   <div className="rank-brand">{item.brand || '—'} · {item.category}</div>
                 </span>
                 <span className="rank-side">
-                  <Dots n={item.rating} /><Verdict v={item.verdict} />
+                  <Like v={item.like} /><Status v={item.status} />
                   {EDIT && <button className="card-edit" onClick={() => setEditing(item)}>Edit</button>}
                 </span>
               </div>
@@ -512,7 +510,7 @@ function Card({ item, onEdit, editable, style, ...handlers }) {
         <div className="card-text">
           {item.brand && <div className="card-brand">{item.brand}{item.shade && ' · ' + item.shade}</div>}
           <div className="card-name">{item.name || 'Untitled'}</div>
-          <div className="card-meta"><Dots n={item.rating} /><Verdict v={item.verdict} /></div>
+          <div className="card-meta"><Like v={item.like} /><Status v={item.status} /></div>
           {item.note && <div className="card-note">{item.note}</div>}
           <div className="card-foot">
             <span>{item.category}</span>
@@ -527,7 +525,7 @@ function Card({ item, onEdit, editable, style, ...handlers }) {
 }
 
 function Editor({ item, onSave, onCancel, onDelete }) {
-  const [d, setD] = useState({ department: 'Beauty', ...item });
+  const [d, setD] = useState({ department: 'Beauty', like: 'like', status: 'using', ...item });
   const set = (k, v) => setD(p => ({ ...p, [k]: v }));
   const setDepartment = (dep) => setD(p => ({ ...p, department: dep, category: SUBCATEGORIES[dep][0] }));
   return (
@@ -548,12 +546,14 @@ function Editor({ item, onSave, onCancel, onDelete }) {
             {SUBCATEGORIES[d.department].map(c => <option key={c}>{c}</option>)}</select></div>
         <div className="field"><label htmlFor="f9">Shade (optional)</label>
           <input id="f9" value={d.shade || ''} onChange={e => set('shade', e.target.value)} placeholder="e.g. 05 Fairfax" /></div>
-        <div className="field"><label>Rating</label>
-          <div className="rate">{[1,2,3,4,5].map(n => (
-            <button key={n} className={n <= d.rating ? 'on' : ''} aria-label={n + ' of 5'} onClick={() => set('rating', n)} />))}</div></div>
-        <div className="field"><label htmlFor="f4">Would you buy it again</label>
-          <select id="f4" value={d.verdict} onChange={e => set('verdict', e.target.value)}>
-            <option value="yes">Yes</option><option value="maybe">Maybe</option><option value="no">No</option></select></div>
+        <div className="field"><label>How you feel about it</label>
+          <div className="seg">
+            <button aria-pressed={d.like === 'favorite'} onClick={() => set('like', 'favorite')}>★ Favorite</button>
+            <button aria-pressed={d.like === 'like'} onClick={() => set('like', 'like')}>☆ Like it</button>
+          </div></div>
+        <div className="field"><label htmlFor="f4">Status</label>
+          <select id="f4" value={d.status} onChange={e => set('status', e.target.value)}>
+            <option value="using">Using</option><option value="retired">Retired</option><option value="buy_again">Buy new version</option></select></div>
         <div className="field"><label>Swatch</label>
           <div className="swatches">{SWATCHES.map(c => (
             <button key={c} className="sw" style={{ background: c }} aria-pressed={d.color === c}

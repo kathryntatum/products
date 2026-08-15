@@ -32,8 +32,8 @@ Each item in `items`:
 | `department` | Beauty, Pharmacy, Home — the top-level toggle |
 | `category` | subcategory, scoped to `department` (see below) — the second-level filter chips |
 | `color` | hex for the swatch spine |
-| `rating` | 1–5 |
-| `verdict` | `yes` / `maybe` / `no` — would buy again |
+| `like` | `favorite` / `like` — how much the owner likes it, not a 1–5 score |
+| `status` | `using` / `retired` / `buy_again` — current relationship to the item, not a rebuy prediction |
 | `note` | optional short opinion |
 | `shade` | optional shade/color name, shown inline after the brand (e.g. "NARS · Affogato") |
 | `link` | optional URL |
@@ -65,8 +65,8 @@ Do not restyle without being asked. These tokens are deliberate:
 --field      #D6DBD2   page background (sage grey)
 --field-deep #C4CABE   canvas background
 --paper      #FCFBF8   cards
---mulberry   #77384F   accent, ratings, "buy again"
---brass      #A8863F   "maybe"
+--mulberry   #77384F   accent, "favorite", "using"
+--brass      #A8863F   "buy new version"
 ```
 
 Type: Iowan Old Style / Palatino serif stack for display, system sans for body, monospace for all
@@ -87,8 +87,13 @@ two-step decision, not an accident.
 
 ## Decisions already made — don't silently reverse these
 
-- **Rating and verdict are separate fields.** Liking something and rebuying it diverge, and the gap
-  is the interesting part. Don't collapse them into one score.
+- **`like` and `status` are separate fields.** How much the owner likes something and its current
+  relationship to it diverge (e.g. a favorite that's been retired, or something merely liked that's
+  in daily use) — the gap is the interesting part. Don't collapse them into one score. This was a
+  1–5 rating + yes/maybe/no "buy again" verdict originally; redesigned Aug 2026 at the owner's
+  request into `like` (favorite/like) and `status` (using/retired/buy_again) because the 5-point
+  scale and rebuy prediction weren't what she actually wanted to track — just what she owns and how
+  she feels about it now.
 - **Below 760px the canvas becomes a stacked grid.** Free positioning is unusable on a phone. Mobile
   uses array order, which is why ranking order must stay sensible even when the shelf is the
   primary view.
