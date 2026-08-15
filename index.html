@@ -321,7 +321,7 @@ function App() {
   function addNew() {
     const n = items.length;
     setEditing({ id: uid(), name: '', brand: '', category: 'Skincare', color: SWATCHES[n % SWATCHES.length],
-      rating: 3, verdict: 'maybe', note: '', link: '', image: '', x: 24 + (n % 4) * 248, y: 24 + Math.floor(n / 4) * 190, isNew: true });
+      rating: 3, verdict: 'maybe', note: '', link: '', image: '', shade: '', x: 24 + (n % 4) * 248, y: 24 + Math.floor(n / 4) * 190, isNew: true });
   }
   function save(it) {
     const { isNew, ...c } = it;
@@ -492,7 +492,7 @@ function Card({ item, onEdit, editable, style, ...handlers }) {
             onError={(e) => { e.target.style.display = 'none'; }} />
         )}
         <div className="card-text">
-          {item.brand && <div className="card-brand">{item.brand}</div>}
+          {item.brand && <div className="card-brand">{item.brand}{item.shade && ' · ' + item.shade}</div>}
           <div className="card-name">{item.name || 'Untitled'}</div>
           <div className="card-meta"><Dots n={item.rating} /><Verdict v={item.verdict} /></div>
           {item.note && <div className="card-note">{item.note}</div>}
@@ -524,6 +524,8 @@ function Editor({ item, onSave, onCancel, onDelete }) {
             <select id="f3" value={d.category} onChange={e => set('category', e.target.value)}>
               {CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></div>
         </div>
+        <div className="field"><label htmlFor="f9">Shade (optional)</label>
+          <input id="f9" value={d.shade || ''} onChange={e => set('shade', e.target.value)} placeholder="e.g. 05 Fairfax" /></div>
         <div className="field"><label>Rating</label>
           <div className="rate">{[1,2,3,4,5].map(n => (
             <button key={n} className={n <= d.rating ? 'on' : ''} aria-label={n + ' of 5'} onClick={() => set('rating', n)} />))}</div></div>

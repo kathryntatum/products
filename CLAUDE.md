@@ -34,8 +34,9 @@ Each item in `items`:
 | `rating` | 1–5 |
 | `verdict` | `yes` / `maybe` / `no` — would buy again |
 | `note` | optional short opinion |
+| `shade` | optional shade/color name, shown inline after the brand (e.g. "NARS · Affogato") |
 | `link` | optional URL |
-| `image` | optional photo URL, rendered as a full-width photo (190px tall) across the top of the card |
+| `image` | optional photo URL, rendered full-width across the top of the card at its own aspect ratio (height auto, capped at 240px, never cropped) |
 | `x`, `y` | pixel position on the Shelf canvas |
 
 **Array order is the ranking order.** It also drives the mobile layout.

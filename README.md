@@ -37,8 +37,9 @@ Open `products.json` in GitHub and edit it. Fields per product:
 | `rating` | 1–5 |
 | `verdict` | `yes` / `maybe` / `no` — would you buy it again |
 | `note` | optional short opinion |
+| `shade` | optional shade/color name, shown next to the brand |
 | `link` | optional URL; shows a "Look" link |
-| `image` | optional photo URL; shown as a small thumbnail on the card |
+| `image` | optional photo URL; shown across the top of the card, sized to the photo's own proportions |
 | `x`, `y` | position on the shelf, in pixels |
 
 The top-level `title`, `intro`, `handle`, and `updated` fields control the header and footer.
