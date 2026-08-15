@@ -88,6 +88,7 @@
 
   .spine { width: 9px; flex: 0 0 9px; border-radius: 1px 0 0 1px; }
   .card-body { padding: 11px 12px 12px; flex: 1; min-width: 0; }
+  .card-thumb { width: 52px; height: 52px; object-fit: cover; border-radius: 2px; border: 1px solid var(--line); float: right; margin: 0 0 8px 10px; background: var(--field); }
   .card-brand { font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
   .card-name { font-family: var(--display); font-size: 17px; line-height: 1.2; margin-top: 3px; overflow-wrap: break-word; }
   .card-meta { display: flex; align-items: center; gap: 8px; margin-top: 9px; flex-wrap: wrap; }
@@ -318,7 +319,7 @@ function App() {
   function addNew() {
     const n = items.length;
     setEditing({ id: uid(), name: '', brand: '', category: 'Skincare', color: SWATCHES[n % SWATCHES.length],
-      rating: 3, verdict: 'maybe', note: '', link: '', x: 24 + (n % 4) * 248, y: 24 + Math.floor(n / 4) * 190, isNew: true });
+      rating: 3, verdict: 'maybe', note: '', link: '', image: '', x: 24 + (n % 4) * 248, y: 24 + Math.floor(n / 4) * 190, isNew: true });
   }
   function save(it) {
     const { isNew, ...c } = it;
@@ -484,6 +485,10 @@ function Card({ item, onEdit, editable, style, ...handlers }) {
     <div className="card" style={style} tabIndex={editable ? 0 : -1} {...handlers}>
       <div className="spine" style={{ background: item.color }} />
       <div className="card-body">
+        {item.image && (
+          <img className="card-thumb" src={item.image} alt="" loading="lazy"
+            onError={(e) => { e.target.style.display = 'none'; }} />
+        )}
         {item.brand && <div className="card-brand">{item.brand}</div>}
         <div className="card-name">{item.name || 'Untitled'}</div>
         <div className="card-meta"><Dots n={item.rating} /><Verdict v={item.verdict} /></div>
@@ -529,6 +534,8 @@ function Editor({ item, onSave, onCancel, onDelete }) {
           <textarea id="f5" value={d.note} onChange={e => set('note', e.target.value)} placeholder="What you thought" /></div>
         <div className="field"><label htmlFor="f6">Link (optional)</label>
           <input id="f6" value={d.link || ''} onChange={e => set('link', e.target.value)} placeholder="https://" /></div>
+        <div className="field"><label htmlFor="f7">Photo URL (optional)</label>
+          <input id="f7" value={d.image || ''} onChange={e => set('image', e.target.value)} placeholder="https://" /></div>
         <div className="sheet-actions">
           <button className="btn btn-solid" onClick={() => onSave(d)}>Save</button>
           <button className="btn" onClick={onCancel}>Cancel</button>

@@ -35,6 +35,7 @@ Each item in `items`:
 | `verdict` | `yes` / `maybe` / `no` — would buy again |
 | `note` | optional short opinion |
 | `link` | optional URL |
+| `image` | optional photo URL, rendered as a small (52px) thumbnail, floated top-right of the card body |
 | `x`, `y` | pixel position on the Shelf canvas |
 
 **Array order is the ranking order.** It also drives the mobile layout.
@@ -60,6 +61,11 @@ page as a trial log rather than a shop.
 **The signature element is the swatch spine**: the colored bar down the left edge of every card.
 Zoomed out, the shelf reads as a palette before it reads as text. This is the one memorable thing.
 Don't dilute it by adding competing color elsewhere.
+
+**Product photos (`image` field) were added deliberately, Aug 2026, at the owner's request** —
+this does cut against "don't add competing color," so the thumbnail is kept small (52px) and
+secondary (spine stays the dominant color signal). Don't grow the thumbnail into full card art
+without being asked again; that was explicitly the option not chosen.
 
 ## Decisions already made — don't silently reverse these
 
