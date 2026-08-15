@@ -29,7 +29,8 @@ Each item in `items`:
 | `id` | unique string |
 | `name` | product name |
 | `brand` | rendered small, above the name |
-| `category` | Skincare, Makeup, Hair, Body, Fragrance, Tools, Other |
+| `department` | Beauty, Pharmacy, Home — the top-level toggle |
+| `category` | subcategory, scoped to `department` (see below) — the second-level filter chips |
 | `color` | hex for the swatch spine |
 | `rating` | 1–5 |
 | `verdict` | `yes` / `maybe` / `no` — would buy again |
@@ -40,6 +41,19 @@ Each item in `items`:
 | `x`, `y` | pixel position on the Shelf canvas |
 
 **Array order is the ranking order.** It also drives the mobile layout.
+
+**Department → category taxonomy** (top toggle → sub-filter chips):
+
+| department | categories |
+|---|---|
+| Beauty | Hair, Makeup, Perfume |
+| Pharmacy | Skincare, Deodorant, Sunscreen, Dental |
+| Home | Bedroom, Kitchen, Living Room |
+
+The department toggle is a hard partition — metrics, sub-filter chips, and the canvas/ranking view
+all scope to whichever department is currently selected. `category` must be one of the values
+listed for the item's `department`; the editor's category dropdown enforces this by resetting to
+the first valid category whenever department changes.
 
 ## Design system
 

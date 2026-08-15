@@ -171,7 +171,12 @@ const { useState, useEffect, useRef, useCallback } = React;
 
 const LOCAL_KEY = 'tried-draft-v1';
 const SWATCHES = ['#77384F', '#A8863F', '#4A6152', '#2E4057', '#8C5A3C', '#6B5B7B', '#B4707E', '#3F4A3C'];
-const CATEGORIES = ['Skincare', 'Makeup', 'Hair', 'Body', 'Fragrance', 'Tools', 'Other'];
+const DEPARTMENTS = ['Beauty', 'Pharmacy', 'Home'];
+const SUBCATEGORIES = {
+  Beauty: ['Hair', 'Makeup', 'Perfume'],
+  Pharmacy: ['Skincare', 'Deodorant', 'Sunscreen', 'Dental'],
+  Home: ['Bedroom', 'Kitchen', 'Living Room'],
+};
 const ZOOM_MIN = 0.4, ZOOM_MAX = 2.5, ZOOM_STEP = 0.15;
 const clampZoom = z => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z * 100) / 100));
 const CARD_W = 224, CARD_H_EST = 260, CANVAS_PAD = 80;
@@ -190,6 +195,7 @@ function App() {
   const [meta, setMeta] = useState(null);
   const [items, setItems] = useState([]);
   const [view, setView] = useState('canvas');
+  const [department, setDepartment] = useState('Beauty');
   const [filter, setFilter] = useState('All');
   const [editing, setEditing] = useState(null);
   const [showJson, setShowJson] = useState(false);
@@ -239,20 +245,27 @@ function App() {
     try { localStorage.setItem(LOCAL_KEY, JSON.stringify(items)); } catch (e) { /* ignore */ }
   }, [items, phase]);
 
-  const visible = filter === 'All' ? items : items.filter(i => i.category === filter);
+  const deptItems = items.filter(i => (i.department || 'Beauty') === department);
+  const visible = filter === 'All' ? deptItems : deptItems.filter(i => i.category === filter);
   const counts = {};
-  items.forEach(i => { if (i.category) counts[i.category] = (counts[i.category] || 0) + 1; });
-  const cats = ['All', ...Object.keys(counts)];
-  const rated = items.filter(i => i.rating > 0);
+  deptItems.forEach(i => { if (i.category) counts[i.category] = (counts[i.category] || 0) + 1; });
+  const subcats = SUBCATEGORIES[department] || [];
+  const cats = ['All', ...subcats];
+  const rated = deptItems.filter(i => i.rating > 0);
   const avg = rated.length ? (rated.reduce((s, i) => s + i.rating, 0) / rated.length).toFixed(1) : '—';
-  const again = items.length ? Math.round(items.filter(i => i.verdict === 'yes').length / items.length * 100) : 0;
+  const again = deptItems.length ? Math.round(deptItems.filter(i => i.verdict === 'yes').length / deptItems.length * 100) : 0;
   const top = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+
+  function switchDepartment(dep) {
+    setDepartment(dep);
+    setFilter('All');
+  }
 
   const useCanvas = view === 'canvas' && !narrow;
 
   // the canvas's logical (unscaled) size: at least the viewport, but grows to
   // fit however far cards have been dragged, so zooming out reveals real room
-  const extent = items.reduce((a, i) => ({
+  const extent = deptItems.reduce((a, i) => ({
     w: Math.max(a.w, (i.x || 0) + CARD_W + CANVAS_PAD),
     h: Math.max(a.h, (i.y || 0) + CARD_H_EST + CANVAS_PAD),
   }), { w: 0, h: 0 });
@@ -320,7 +333,7 @@ function App() {
 
   function addNew() {
     const n = items.length;
-    setEditing({ id: uid(), name: '', brand: '', category: 'Skincare', color: SWATCHES[n % SWATCHES.length],
+    setEditing({ id: uid(), name: '', brand: '', department, category: SUBCATEGORIES[department][0], color: SWATCHES[n % SWATCHES.length],
       rating: 3, verdict: 'maybe', note: '', link: '', image: '', shade: '', x: 24 + (n % 4) * 248, y: 24 + Math.floor(n / 4) * 190, isNew: true });
   }
   function save(it) {
@@ -370,10 +383,15 @@ function App() {
         <div className="mast">
           <div>
             <h1 className="mast-title">{meta?.title || 'Tried'}</h1>
-            <div className="mast-sub">{items.length} products · Updated {meta?.updated || ''}</div>
+            <div className="mast-sub">{deptItems.length} products · Updated {meta?.updated || ''}</div>
             {meta?.intro && <p className="intro">{meta.intro}</p>}
           </div>
           <div className="mast-actions">
+            <div className="seg">
+              {DEPARTMENTS.map(dep => (
+                <button key={dep} aria-pressed={department === dep} onClick={() => switchDepartment(dep)}>{dep}</button>
+              ))}
+            </div>
             <div className="seg">
               <button aria-pressed={view === 'canvas'} onClick={() => setView('canvas')}>Shelf</button>
               <button aria-pressed={view === 'rank'} onClick={() => setView('rank')}>Ranking</button>
@@ -382,7 +400,7 @@ function App() {
         </div>
 
         <div className="metrics">
-          <div className="metric"><div className="metric-label">Logged</div><div className="metric-value">{items.length}</div></div>
+          <div className="metric"><div className="metric-label">Logged</div><div className="metric-value">{deptItems.length}</div></div>
           <div className="metric"><div className="metric-label">Avg rating</div><div className="metric-value">{avg}{avg !== '—' && <span className="unit">/5</span>}</div></div>
           <div className="metric"><div className="metric-label">Would buy again</div><div className="metric-value">{again}<span className="unit">%</span></div></div>
           <div className="metric"><div className="metric-label">Most tried</div><div className="metric-value small">{top || '—'}</div></div>
@@ -391,7 +409,7 @@ function App() {
         <div className="filters">
           {cats.map(c => (
             <button key={c} className="chip" aria-pressed={filter === c} onClick={() => setFilter(c)}>
-              {c}{c !== 'All' && ' · ' + counts[c]}
+              {c}{c !== 'All' && ' · ' + (counts[c] || 0)}
             </button>
           ))}
           <div className="filters-right">
@@ -509,8 +527,9 @@ function Card({ item, onEdit, editable, style, ...handlers }) {
 }
 
 function Editor({ item, onSave, onCancel, onDelete }) {
-  const [d, setD] = useState(item);
+  const [d, setD] = useState({ department: 'Beauty', ...item });
   const set = (k, v) => setD(p => ({ ...p, [k]: v }));
+  const setDepartment = (dep) => setD(p => ({ ...p, department: dep, category: SUBCATEGORIES[dep][0] }));
   return (
     <div className="scrim" onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
       <div className="sheet">
@@ -520,10 +539,13 @@ function Editor({ item, onSave, onCancel, onDelete }) {
         <div className="row2">
           <div className="field"><label htmlFor="f2">Brand</label>
             <input id="f2" value={d.brand} onChange={e => set('brand', e.target.value)} /></div>
-          <div className="field"><label htmlFor="f3">Category</label>
-            <select id="f3" value={d.category} onChange={e => set('category', e.target.value)}>
-              {CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></div>
+          <div className="field"><label htmlFor="fDept">Department</label>
+            <select id="fDept" value={d.department} onChange={e => setDepartment(e.target.value)}>
+              {DEPARTMENTS.map(dep => <option key={dep}>{dep}</option>)}</select></div>
         </div>
+        <div className="field"><label htmlFor="f3">Category</label>
+          <select id="f3" value={d.category} onChange={e => set('category', e.target.value)}>
+            {SUBCATEGORIES[d.department].map(c => <option key={c}>{c}</option>)}</select></div>
         <div className="field"><label htmlFor="f9">Shade (optional)</label>
           <input id="f9" value={d.shade || ''} onChange={e => set('shade', e.target.value)} placeholder="e.g. 05 Fairfax" /></div>
         <div className="field"><label>Rating</label>
