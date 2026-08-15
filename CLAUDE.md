@@ -35,7 +35,7 @@ Each item in `items`:
 | `verdict` | `yes` / `maybe` / `no` — would buy again |
 | `note` | optional short opinion |
 | `link` | optional URL |
-| `image` | optional photo URL, rendered as a small (52px) thumbnail, floated top-right of the card body |
+| `image` | optional photo URL, rendered as a full-width photo (190px tall) across the top of the card |
 | `x`, `y` | pixel position on the Shelf canvas |
 
 **Array order is the ranking order.** It also drives the mobile layout.
@@ -62,10 +62,13 @@ page as a trial log rather than a shop.
 Zoomed out, the shelf reads as a palette before it reads as text. This is the one memorable thing.
 Don't dilute it by adding competing color elsewhere.
 
-**Product photos (`image` field) were added deliberately, Aug 2026, at the owner's request** —
-this does cut against "don't add competing color," so the thumbnail is kept small (52px) and
-secondary (spine stays the dominant color signal). Don't grow the thumbnail into full card art
-without being asked again; that was explicitly the option not chosen.
+**Product photos (`image` field) were added deliberately, Aug 2026, at the owner's request.**
+Started as a small 52px thumbnail to protect the spine as the dominant color signal, then the
+owner explicitly asked for the photo to be the majority of the card and the title to shrink — so
+now it is full-width card art (190px) with a smaller title beneath. The spine still runs the full
+height of the card as a persistent accent, but it's no longer the dominant visual on cards that
+have a photo. Don't re-shrink the photo back down without being asked; that was a deliberate,
+two-step decision, not an accident.
 
 ## Decisions already made — don't silently reverse these
 
