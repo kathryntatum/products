@@ -20,14 +20,14 @@
     },
     {
       "id": "p2",
-      "name": "Porcelain Pink Matte Powder",
+      "name": "MicroSmooth Multi-Tasking Baked Face Powder",
       "brand": "Sephora Collection",
       "category": "Makeup",
       "color": "#C48B98",
       "rating": 5,
       "verdict": "yes",
       "note": "",
-      "link": "",
+      "link": "https://www.sephora.com/product/sephora-collection-microsmooth-multi-tasking-baked-face-powder-P474388",
       "image": "",
       "x": 272,
       "y": 24
@@ -41,7 +41,7 @@
       "rating": 5,
       "verdict": "yes",
       "note": "",
-      "link": "",
+      "link": "https://www.narscosmetics.com/USA/radiant-creamy-concealer/999NACRCC0001.html",
       "image": "",
       "x": 520,
       "y": 24
@@ -55,7 +55,7 @@
       "rating": 5,
       "verdict": "yes",
       "note": "",
-      "link": "",
+      "link": "https://www.tower28beauty.com/products/sunnydays-tinted-spf",
       "image": "",
       "x": 768,
       "y": 24
@@ -69,7 +69,7 @@
       "rating": 5,
       "verdict": "yes",
       "note": "",
-      "link": "",
+      "link": "https://www.bareminerals.com/products/original-loose-powder-foundation-spf-15",
       "image": "",
       "x": 24,
       "y": 214
@@ -83,7 +83,7 @@
       "rating": 5,
       "verdict": "yes",
       "note": "",
-      "link": "",
+      "link": "https://www.toofaced.com/product/23484/59115/eye-makeup/mascara/better-than-sex-volumizing-mascara",
       "image": "",
       "x": 272,
       "y": 214
@@ -100,6 +100,20 @@
       "link": "",
       "image": "",
       "x": 520,
+      "y": 214
+    },
+    {
+      "id": "p8",
+      "name": "Invisimatte Blotting Powder",
+      "brand": "Sephora Collection",
+      "category": "Makeup",
+      "color": "#2E4057",
+      "rating": 5,
+      "verdict": "yes",
+      "note": "",
+      "link": "https://www.sephora.com/product/invisimatte-blotting-powder-P39784685",
+      "image": "",
+      "x": 768,
       "y": 214
     }
   ]
