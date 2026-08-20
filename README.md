@@ -39,6 +39,7 @@ Open `products.json` in GitHub and edit it. Fields per product:
 | `note` | optional short opinion |
 | `shade` | optional shade/color name, shown next to the brand |
 | `link` | optional URL; shows a "Look" link |
+| `amazonLink` | optional Amazon URL; shows an "Amazon" link next to "Look" |
 | `image` | optional photo URL; shown across the top of the card, sized to the photo's own proportions |
 | `x`, `y` | position on the shelf, in pixels |
 

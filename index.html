@@ -101,6 +101,7 @@
   .card-note { font-size: 11.5px; line-height: 1.45; color: var(--ink-soft); margin-top: 8px; overflow-wrap: break-word; }
   .card-foot { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--line-soft); display: flex; justify-content: space-between; gap: 8px; align-items: center; }
   .card-foot a { color: var(--mulberry); text-decoration: none; border-bottom: 1px solid currentColor; }
+  .card-links { display: flex; gap: 10px; }
   .card-edit { border: 0; background: transparent; font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); cursor: pointer; padding: 0; }
   .card-edit:hover { color: var(--mulberry); }
 
@@ -330,7 +331,7 @@ function App() {
   function addNew() {
     const n = items.length;
     setEditing({ id: uid(), name: '', brand: '', department, category: SUBCATEGORIES[department][0], color: SWATCHES[n % SWATCHES.length],
-      like: 'like', status: 'using', note: '', link: '', image: '', shade: '', x: 24 + (n % 4) * 248, y: 24 + Math.floor(n / 4) * 190, isNew: true });
+      like: 'like', status: 'using', note: '', link: '', image: '', shade: '', amazonLink: '', x: 24 + (n % 4) * 248, y: 24 + Math.floor(n / 4) * 190, isNew: true });
   }
   function save(it) {
     const { isNew, ...c } = it;
@@ -514,9 +515,14 @@ function Card({ item, onEdit, editable, style, ...handlers }) {
           {item.note && <div className="card-note">{item.note}</div>}
           <div className="card-foot">
             <span>{item.category}</span>
-            {editable
-              ? <button className="card-edit" onClick={() => onEdit(item)}>Edit</button>
-              : item.link ? <a href={item.link} target="_blank" rel="noopener noreferrer nofollow">Look</a> : null}
+            {editable ? (
+              <button className="card-edit" onClick={() => onEdit(item)}>Edit</button>
+            ) : (
+              <span className="card-links">
+                {item.link && <a href={item.link} target="_blank" rel="noopener noreferrer nofollow">Look</a>}
+                {item.amazonLink && <a href={item.amazonLink} target="_blank" rel="noopener noreferrer nofollow">Amazon</a>}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -564,6 +570,8 @@ function Editor({ item, onSave, onCancel, onDelete }) {
           <input id="f6" value={d.link || ''} onChange={e => set('link', e.target.value)} placeholder="https://" /></div>
         <div className="field"><label htmlFor="f7">Photo URL (optional)</label>
           <input id="f7" value={d.image || ''} onChange={e => set('image', e.target.value)} placeholder="https://" /></div>
+        <div className="field"><label htmlFor="f8">Amazon link (optional)</label>
+          <input id="f8" value={d.amazonLink || ''} onChange={e => set('amazonLink', e.target.value)} placeholder="https://www.amazon.com/..." /></div>
         <div className="sheet-actions">
           <button className="btn btn-solid" onClick={() => onSave(d)}>Save</button>
           <button className="btn" onClick={onCancel}>Cancel</button>

@@ -36,7 +36,8 @@ Each item in `items`:
 | `status` | `using` / `retired` / `buy_again` — current relationship to the item, not a rebuy prediction |
 | `note` | optional short opinion |
 | `shade` | optional shade/color name, shown inline after the brand (e.g. "NARS · Affogato") |
-| `link` | optional URL |
+| `link` | optional URL, shows a "Look" link (usually the official brand page) |
+| `amazonLink` | optional Amazon URL, shows an "Amazon" link alongside "Look" — plain product links, no Associates/affiliate tag (owner's explicit choice, Aug 2026) |
 | `image` | optional photo URL, rendered full-width across the top of the card at its own aspect ratio (height auto, capped at 240px, never cropped) |
 | `x`, `y` | pixel position on the Shelf canvas |
 
@@ -125,7 +126,11 @@ fails because browsers block the fetch.
 
 ## Not yet decided
 
-- Whether to attach affiliate links. If they're added, the hardcoded footer line
-  "Nothing here is sponsored" must be replaced with a proper FTC disclosure.
 - Whether to point a custom domain at the site. The current URL contains the owner's legal
   surname, which differs from the public creator handle.
+
+## Decided, worth remembering
+
+- **Amazon links are plain, not affiliate.** Explicitly decided Aug 2026: `amazonLink` values have
+  no Associates tag. The footer's "Nothing here is sponsored" line stays as-is. If an affiliate tag
+  is added later, that line needs to become a real FTC disclosure — don't add a tag silently.
