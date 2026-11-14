@@ -87,7 +87,7 @@
 
   .spine { width: 9px; flex: 0 0 9px; border-radius: 1px 0 0 1px; }
   .card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .card-photo { width: calc(100% - 24px); height: auto; max-height: 240px; min-height: 40px; object-fit: contain; display: block; flex: 0 0 auto; margin: 12px 12px 0; border-radius: 2px; border: 1px solid var(--line); background: var(--field); }
+  .card-photo { -webkit-user-drag: none; width: calc(100% - 24px); height: auto; max-height: 240px; min-height: 40px; object-fit: contain; display: block; flex: 0 0 auto; margin: 12px 12px 0; border-radius: 2px; border: 1px solid var(--line); background: var(--field); }
   .card-text { padding: 10px 12px 11px; }
   .card-brand { font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
   .card-name { font-family: var(--display); font-size: 14px; line-height: 1.25; margin-top: 3px; overflow-wrap: break-word; }
@@ -501,11 +501,12 @@ function App() {
 
 function Card({ item, onEdit, editable, style, ...handlers }) {
   return (
-    <div className="card" style={style} tabIndex={editable ? 0 : -1} {...handlers}>
+    <div className="card" style={style} tabIndex={editable ? 0 : -1}
+      onDragStart={(e) => e.preventDefault()} {...handlers}>
       <div className="spine" style={{ background: item.color }} />
       <div className="card-body">
         {item.image && (
-          <img className="card-photo" src={item.image} alt="" loading="lazy"
+          <img className="card-photo" src={item.image} alt="" loading="lazy" draggable={false}
             onError={(e) => { e.target.style.display = 'none'; }} />
         )}
         <div className="card-text">
