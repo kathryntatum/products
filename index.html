@@ -373,6 +373,7 @@ function App() {
           <button onClick={addNew}>+ Add</button>
           <button onClick={copyJson}>Copy products.json</button>
           <button onClick={() => { if (confirm('Discard local changes and reload the published version?')) { localStorage.removeItem(LOCAL_KEY); location.reload(); } }}>Reset</button>
+          <button onClick={() => { location.href = location.pathname; }}>Done</button>
         </div>
       )}
 
@@ -481,7 +482,7 @@ function App() {
 
         <div className="foot">
           <span>{meta?.handle || ''}</span>
-          <span>Nothing here is sponsored</span>
+          <span>Nothing here is sponsored{!EDIT && <> · <a href="?edit">Edit</a></>}</span>
         </div>
       </div>
 

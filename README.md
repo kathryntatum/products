@@ -19,7 +19,7 @@ A public page of products I've actually used, arranged spatially rather than lis
 Two ways, pick whichever you prefer.
 
 **Edit in the browser (easier for rearranging)**
-1. Open your live URL with `?edit` on the end — e.g. `https://you.github.io/tried/?edit`
+1. Click **Edit** at the bottom of the page (or open your live URL with `?edit` on the end). Click **Done** in the top bar to leave edit mode.
 2. Add, edit, delete, drag cards around, reorder the ranking. Changes save in your browser only; the public page is untouched.
 3. Click **Copy products.json**.
 4. In GitHub, open `products.json` → pencil icon → select all → paste → Commit.
