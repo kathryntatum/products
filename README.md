@@ -21,8 +21,14 @@ Two ways, pick whichever you prefer.
 **Edit in the browser (easier for rearranging)**
 1. Click **Edit** at the bottom of the page (or open your live URL with `?edit` on the end). Click **Done** in the top bar to leave edit mode.
 2. Add, edit, delete, drag cards around, reorder the ranking. Changes save in your browser only; the public page is untouched.
-3. Click **Copy products.json**.
-4. In GitHub, open `products.json` → pencil icon → select all → paste → Commit.
+3. Click **Save to site**. The first time, it asks for a GitHub token (see below); after that it just saves. The public page updates a minute or two later.
+   - No token? Click **Copy products.json** instead, then in GitHub open `products.json` → pencil icon → select all → paste → Commit.
+
+**Making the token for Save to site (one time)**
+1. Go to github.com/settings/personal-access-tokens/new (Settings → Developer settings → Fine-grained tokens).
+2. Repository access: **Only select repositories** → pick this repo.
+3. Permissions → Repository permissions → **Contents: Read and write**. Nothing else.
+4. Generate, copy, and paste it when the site asks. It's stored in that browser only. If it expires or is rejected, the site asks for a new one.
 
 **Edit the JSON directly (easier for small fixes)**
 

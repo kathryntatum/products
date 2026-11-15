@@ -98,8 +98,12 @@ two-step decision, not an accident.
 - **Below 760px the canvas becomes a stacked grid.** Free positioning is unusable on a phone. Mobile
   uses array order, which is why ranking order must stay sensible even when the shelf is the
   primary view.
-- **`?edit` unlocks the editing UI**, stores drafts in `localStorage`, and publishes via a
-  "Copy products.json" button. It is *not* security and was never meant to be — it hides the UI,
+- **`?edit` unlocks the editing UI** (also reachable from the footer "Edit" link; "Done" exits),
+  stores drafts in `localStorage`, and publishes via **Save to site** — commits `products.json`
+  to `main` through the GitHub contents API using a fine-grained token (Contents: read/write on
+  this repo only) the owner pastes once; kept in that browser's `localStorage` under
+  `tried-gh-token`, cleared automatically if GitHub rejects it. Added Nov 2026 at the owner's
+  request. "Copy products.json" stays as the no-token fallback. It is *not* security and was never meant to be — it hides the UI,
   nothing more. Don't build auth on top of it; repo access is the real control.
 - **View-only by default.** Visitors cannot drag, edit, or reorder.
 - **Public page is served from `products.json`**, never from `localStorage`. A visitor must see the

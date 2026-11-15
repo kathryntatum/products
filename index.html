@@ -129,6 +129,7 @@
   .editbar { background: var(--ink); color: var(--paper); padding: 9px 16px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   .editbar button { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; background: transparent; border: 1px solid rgba(252,251,248,.4); color: var(--paper); padding: 5px 11px; border-radius: 2px; cursor: pointer; }
   .editbar button:hover { background: var(--paper); color: var(--ink); }
+  .editbar button:disabled { opacity: .5; cursor: default; }
   .editbar .grow { flex: 1; }
 
   .scrim { position: fixed; inset: 0; background: rgba(25,28,36,.5); display: flex; align-items: center; justify-content: center; padding: 18px; z-index: 100; }
@@ -177,6 +178,16 @@ const ZOOM_MIN = 0.4, ZOOM_MAX = 2.5, ZOOM_STEP = 0.15;
 const clampZoom = z => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z * 100) / 100));
 const CARD_W = 224, CARD_H_EST = 260, CANVAS_PAD = 80;
 const EDIT = new URLSearchParams(location.search).has('edit');
+
+const GH = { owner: 'kathryntatum', repo: 'products', branch: 'main', path: 'products.json' };
+const TOKEN_KEY = 'tried-gh-token';
+const GH_API = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.path}`;
+const toBase64 = (str) => {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+};
 
 const uid = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
@@ -342,6 +353,57 @@ function App() {
 
   const publishedJson = () => JSON.stringify({ ...(meta || {}), items }, null, 2);
 
+  const [saving, setSaving] = useState(false);
+
+  function askToken() {
+    const t = prompt(
+      'Paste a GitHub token to save straight to the site.\n\n' +
+      'Create one at github.com/settings/personal-access-tokens/new:\n' +
+      '• Repository access: Only select repositories → ' + GH.repo + '\n' +
+      '• Permissions → Contents: Read and write\n\n' +
+      'It is kept in this browser only.'
+    );
+    if (!t || !t.trim()) return null;
+    try { localStorage.setItem(TOKEN_KEY, t.trim()); } catch (e) { /* ignore */ }
+    return t.trim();
+  }
+
+  async function saveToSite() {
+    let token = null;
+    try { token = localStorage.getItem(TOKEN_KEY); } catch (e) { /* ignore */ }
+    if (!token) token = askToken();
+    if (!token) return;
+    setSaving(true);
+    try {
+      const headers = { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' };
+      const cur = await fetch(GH_API + '?ref=' + GH.branch, { headers, cache: 'no-store' });
+      if (cur.status === 401 || cur.status === 403 || cur.status === 404) {
+        try { localStorage.removeItem(TOKEN_KEY); } catch (e) { /* ignore */ }
+        alert('GitHub didn\'t accept that token (it may be expired or missing Contents: Read and write on ' + GH.repo + '). Click Save to site again to enter a new one.');
+        return;
+      }
+      if (!cur.ok) throw new Error('GitHub said ' + cur.status);
+      const { sha } = await cur.json();
+      const updated = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
+      const newMeta = { ...(meta || {}), updated };
+      const body = JSON.stringify({ ...newMeta, items }, null, 2) + '\n';
+      const put = await fetch(GH_API, {
+        method: 'PUT', headers,
+        body: JSON.stringify({ message: 'Update products from the site editor', content: toBase64(body), sha, branch: GH.branch }),
+      });
+      if (!put.ok) {
+        const err = await put.json().catch(() => ({}));
+        throw new Error(err.message || ('GitHub said ' + put.status));
+      }
+      setMeta(newMeta);
+      alert('Saved. The public page updates in a minute or two.');
+    } catch (e) {
+      alert('Couldn\'t save: ' + e.message + '\n\nYour changes are still here. You can try again, or use Copy products.json instead.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function copyJson() {
     navigator.clipboard.writeText(publishedJson()).then(
       () => alert('Copied. Paste it over products.json in GitHub and commit.'),
@@ -371,6 +433,7 @@ function App() {
           <span>Edit mode — changes are saved in this browser only</span>
           <span className="grow" />
           <button onClick={addNew}>+ Add</button>
+          <button onClick={saveToSite} disabled={saving}>{saving ? 'Saving…' : 'Save to site'}</button>
           <button onClick={copyJson}>Copy products.json</button>
           <button onClick={() => { if (confirm('Discard local changes and reload the published version?')) { localStorage.removeItem(LOCAL_KEY); location.reload(); } }}>Reset</button>
           <button onClick={() => { location.href = location.pathname; }}>Done</button>
